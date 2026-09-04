@@ -34,3 +34,4 @@ data/processed/*
 
 # Docker
 *.pid
+.pytest_cache/
