@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: #f6f4ef;
+  color: #201f1c;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+/* Visible keyboard focus everywhere — this is a tool people navigate by
+   keyboard as often as by mouse. */
+:focus-visible {
+  outline: 2px solid #2f6b4e;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Streaming-response cursor. */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.streaming-cursor {
+  animation: blink 1s step-start infinite;
+}
