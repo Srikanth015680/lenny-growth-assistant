@@ -1,39 +1,147 @@
+
 # 08 — Frontend
 
-Before writing any component, planned the visual direction deliberately
-(recorded in `docs/design.md`) rather than defaulting to generic
-Tailwind-starter styling: a quiet paper/ink palette with exactly two
-meaningful accents (moss for the assistant, clay reserved for transcript
-citations so sourced evidence is visually distinct from the model's own
-words), system font stack (no webfont network dependency), avoiding the
-usual AI-generated-UI tells (identical shadow-card grids, ALL-CAPS
-eyebrows, em-dash labels, arrow-suffixed buttons).
+## Goal
 
-Built bottom-up: `lib/types.ts` (hand-mirrored from the backend Pydantic
-schemas) and `lib/api.ts` (including a hand-rolled SSE parser over
-`fetch()`, since `EventSource` can't do POST) first, then UI primitives,
-then Chat components, then Artifact components, then the two hooks
-(`useSessions`, `useChatStream`) tying it together, then `page.tsx` last.
+Build a responsive interface for The Lenny Growth Assistant with streaming
+chat, conversation management, source citations, provider selection, and an
+in-app artifact viewer.
 
-Two real errors caught and fixed here, not left in the delivered code:
-- `next.config.ts` isn't supported by Next.js 14.x (that's a Next 15+
-  feature) — `next build` failed immediately with a clear error;
-  converted to `next.config.mjs`.
-- `npm install` initially pulled Next.js 14.2.15, which `npm audit`
-  flagged as having a critical/high-severity advisory with a public
-  writeup. Bumped to the latest 14.2.x patch (14.2.35) plus a DOMPurify
-  bump (moderate advisory) and re-ran audit — resolved the critical/high
-  findings; 5 remaining high-severity findings are a transitive PostCSS
-  dependency bundled *inside* Next 14's own toolchain (build-time
-  source-map path traversal, not a runtime vulnerability), which would
-  need a Next 15/16 major upgrade to fully clear — documented rather than
-  silently ignored or force-upgraded blind.
+## Frontend Stack
 
-`npm install` + `NEXT_PUBLIC_API_URL=... npx next build` were both run for
-real and succeeded, including strict TypeScript checking
-(`"strict": true` in `tsconfig.json`) — this is a genuinely compiling
-Next.js app, not just syntactically-plausible-looking source files. Also
-ran backend + frontend together (`next start` against a live local
-`uvicorn`) and confirmed the built page serves with a 200 and the correct
-title, and confirmed `/api/health` reflects real Postgres state through
-to the browser-facing API contract.
+The frontend uses:
+
+* Next.js 16
+* React 19
+* TypeScript
+* Tailwind CSS
+* React Markdown
+* Playwright for browser-level testing
+
+The application uses strict TypeScript settings so that API contracts and
+component props are checked during development and production builds.
+
+## Design
+
+The visual direction was defined in `docs/design.md` before implementing the
+main components.
+
+The interface uses a quiet paper-and-ink visual style with a small number of
+meaningful accents.
+
+Assistant responses and transcript citations use visually different
+treatments so users can quickly distinguish generated explanations from
+source evidence.
+
+A system font stack is used to avoid an external font dependency.
+
+## Implementation
+
+The frontend was built in layers:
+
+1. Shared API types
+2. API client
+3. UI primitives
+4. Chat components
+5. Source citation components
+6. Artifact components
+7. Session and streaming hooks
+8. Main application page
+
+The main interface supports:
+
+* creating a new conversation
+* switching between sessions
+* streaming assistant responses
+* displaying transcript sources
+* selecting the LLM provider
+* generating Ship 30 for 30 essays
+* generating artifacts
+* viewing Markdown artifacts
+* viewing HTML artifacts
+* loading states
+* error states
+* responsive layouts
+
+## Streaming
+
+Chat responses are streamed from FastAPI using Server-Sent Events.
+
+The frontend uses `fetch()` for the chat request because the request needs to
+send the session, message, provider, and mode in the POST body.
+
+The client parses the SSE stream and handles structured events including:
+
+* status
+* sources
+* token
+* artifact
+* error
+* done
+
+## Artifact Viewer
+
+The artifact viewer is displayed alongside the conversation on larger
+screens.
+
+On smaller screens it becomes a collapsible section so the chat remains the
+primary interaction.
+
+Markdown artifacts are rendered using `react-markdown` with GitHub-flavored
+Markdown support.
+
+HTML artifacts are rendered inside a restricted sandboxed iframe.
+
+## Security
+
+Generated HTML is treated as untrusted content.
+
+The HTML viewer uses:
+
+`sandbox="allow-scripts"`
+
+and does not grant `allow-same-origin`.
+
+The Markdown renderer does not enable arbitrary raw HTML rendering.
+
+The security model is documented separately in the architecture and design
+documentation.
+
+## Accessibility
+
+The interface includes:
+
+* keyboard-accessible controls
+* visible focus states
+* semantic buttons
+* accessible labels
+* appropriate loading states
+* readable contrast
+* responsive layouts
+* reduced reliance on color alone to communicate state
+
+## Testing
+
+Frontend validation includes:
+
+* TypeScript checking
+* production builds
+* component-level tests where appropriate
+* browser-level testing with Playwright for important user flows
+
+Important browser flows include:
+
+1. Creating a session.
+2. Sending a message.
+3. Receiving a streamed response.
+4. Viewing sources.
+5. Generating an artifact.
+6. Opening the artifact viewer.
+7. Switching between sessions.
+8. Handling backend/provider failures.
+
+## Result
+
+The frontend provides a complete interface for the assistant while keeping
+the underlying AI, retrieval, and infrastructure details hidden from the
+user.

@@ -2,17 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+
 import { SessionSelector } from "@/components/Chat/SessionSelector";
 import { ProviderSelector } from "@/components/Chat/ProviderSelector";
 import { ChatPane } from "@/components/Chat/ChatPane";
 import { ArtifactViewer } from "@/components/Artifact/ArtifactViewer";
+
 import { useSessions } from "@/hooks/useSessions";
 import { useChatStream } from "@/hooks/useChatStream";
 import { useArtifacts } from "@/hooks/useArtifacts";
+
 import { fetchHealth } from "@/lib/api";
 import type { Health, LLMProvider } from "@/lib/types";
 
-const HEALTH_POLL_MS = 30_000;
+const HEALTH_POLL_MS = 30000;
 
 export default function Home() {
   const {
@@ -29,20 +32,38 @@ export default function Home() {
   const [health, setHealth] = useState<Health | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const { activeArtifact, openArtifact, closeArtifact, openArtifactById } = useArtifacts();
+  const {
+    activeArtifact,
+    openArtifact,
+    closeArtifact,
+    openArtifactById,
+  } = useArtifacts();
 
-  const { sendMessage, sending, statusMessage, streamingMessageId, error, clearError } =
-    useChatStream({
-      session: activeSession,
-      setSession: setActiveSession,
-      provider,
-      onArtifact: openArtifact,
-    });
+  const {
+    sendMessage,
+    sending,
+    statusMessage,
+    streamingMessageId,
+    error,
+    clearError,
+  } = useChatStream({
+    session: activeSession,
+    setSession: setActiveSession,
+    provider,
+    onArtifact: openArtifact,
+  });
 
   useEffect(() => {
-    const poll = () => fetchHealth().then(setHealth).catch(() => setHealth(null));
-    poll();
-    const interval = setInterval(poll, HEALTH_POLL_MS);
+    const checkHealth = () => {
+      fetchHealth()
+        .then(setHealth)
+        .catch(() => setHealth(null));
+    };
+
+    checkHealth();
+
+    const interval = setInterval(checkHealth, HEALTH_POLL_MS);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -72,14 +93,24 @@ export default function Home() {
           >
             {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
-          <h1 className="text-sm font-semibold text-ink">The Lenny Growth Assistant</h1>
+
+          <h1 className="text-sm font-semibold text-ink">
+            The Lenny Growth Assistant
+          </h1>
         </div>
-        <ProviderSelector provider={provider} onChange={setProvider} health={health} />
+
+        <ProviderSelector
+          provider={provider}
+          onChange={setProvider}
+          health={health}
+        />
       </header>
 
       <div className="relative flex flex-1 overflow-hidden">
         <div
-          className={`${mobileNavOpen ? "fixed inset-0 z-40 flex" : "hidden"} md:static md:z-auto md:flex`}
+          className={`${
+            mobileNavOpen ? "fixed inset-0 z-40 flex" : "hidden"
+          } md:static md:z-auto md:flex`}
         >
           <SessionSelector
             sessions={sessions}
@@ -99,10 +130,15 @@ export default function Home() {
           error={error}
           onDismissError={clearError}
           onSend={sendMessage}
-          onOpenArtifact={(artifactId) => openArtifactById(activeSession, artifactId)}
+          onOpenArtifact={(artifactId) =>
+            openArtifactById(activeSession, artifactId)
+          }
         />
 
-        <ArtifactViewer artifact={activeArtifact} onClose={closeArtifact} />
+        <ArtifactViewer
+          artifact={activeArtifact}
+          onClose={closeArtifact}
+        />
       </div>
     </div>
   );

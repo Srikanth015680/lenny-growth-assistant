@@ -1,19 +1,65 @@
-# 01 — Initial scaffolding
 
-Built the full repository tree from the spec's section 3 in one pass:
-backend (`app/{models,api,providers,rag,agent,skills}`, `scripts`,
-`tests`), frontend (`src/{app,components,hooks,lib}`), `docs/`,
-`agent_transcripts/`, `data/{transcripts,processed}`.
+# 01 — Initial Scaffolding
 
-Wrote `.env.example` and `.gitignore` first, then backend foundations in
-this order: `config.py` (pydantic-settings, one typed source of truth),
-`logging_config.py` (structured JSON logs), `exceptions.py` (one
-`AppError` base class + a subclass per failure mode, each with a fixed
-`code` + HTTP status — this shape is what section 23's structured error
-responses turned into).
+## Goal
 
-Decision: scoped "Phase 1" wider than a literal empty skeleton — included
-the SQLAlchemy models and async DB engine too, since they're foundational
-and don't depend on anything else being built first. This diverged from a
-minimal-scaffold-only interpretation on purpose; flagged to the user
-before continuing past it.
+Set up the initial project structure for The Lenny Growth Assistant.
+
+## Work Completed
+
+Created the main repository structure:
+
+- `backend/`
+- `frontend/`
+- `docs/`
+- `agent_transcripts/`
+- `data/`
+
+The backend was organized into:
+
+- `app/api/`
+- `app/models/`
+- `app/providers/`
+- `app/rag/`
+- `app/agent/`
+- `app/skills/`
+- `scripts/`
+- `tests/`
+
+The frontend was organized into:
+
+- `src/app/`
+- `src/components/`
+- `src/hooks/`
+- `src/lib/`
+
+Created the initial:
+
+- `.env.example`
+- `.gitignore`
+- `docker-compose.yml`
+- `README.md`
+
+## Backend Foundation
+
+Added the initial backend configuration and infrastructure:
+
+- `config.py` for environment-based configuration
+- `logging_config.py` for application logging
+- `exceptions.py` for consistent API errors
+- `database.py` for the asynchronous PostgreSQL connection
+- SQLAlchemy models for the initial database structure
+
+## Decision
+
+I included the initial database models and database connection during the scaffolding stage because the rest of the backend depends on them.
+
+This means the first stage was slightly larger than an empty project skeleton, but it gave the later API and RAG work a working foundation.
+
+## Verification
+
+Verified that the initial backend structure and configuration could be imported successfully and that the project was ready for the database/API implementation stage.
+
+## Next Step
+
+Implement the PostgreSQL + pgvector setup and verify the database connection.

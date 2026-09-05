@@ -11,8 +11,7 @@ ARG NEXT_PUBLIC_API_URL=http://localhost:8000
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN npm run build
 
-# `output: "standalone"` in next.config.mjs produces a minimal server we can
-# copy without node_modules along for the ride.
+
 FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production

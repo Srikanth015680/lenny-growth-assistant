@@ -1,4 +1,4 @@
-.PHONY: up down build logs backend-shell test ingest download-transcripts fmt
+.PHONY: up down build logs backend-shell test ingest download-transcripts
 
 up:
 	docker compose up --build
@@ -15,8 +15,6 @@ logs:
 backend-shell:
 	docker compose exec backend /bin/bash
 
-# Runs pytest inside the backend container against a throwaway schema on
-# the same `db` service (see backend/tests/conftest.py).
 test:
 	docker compose exec backend pytest -v
 

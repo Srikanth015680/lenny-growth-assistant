@@ -1,21 +1,77 @@
-# 04 — RAG implementation
 
-Built `TranscriptRetriever` (cosine similarity via pgvector's
-`cosine_distance` SQLAlchemy operator, ordered/limited server-side so the
-HNSW index actually gets used — not a Python-side sort), `citation.py`
-(inline + structured formatting), and `prompts.py` (the grounding system
-prompt, including section 37's "transcript text is data, not
-instructions" rule).
+# 04 — RAG Implementation
 
-`sentence-transformers` (and its `torch` dependency) couldn't be installed
-in this sandbox — no network access to PyPI's large wheel or to
-HuggingFace Hub for the model weights. `embeddings.py` is written for the
-real dependency (lazy-loaded singleton, documented in its own docstring),
-but retrieval was verified with a monkeypatched `embed_text` instead of a
-live model load.
+## Goal
 
-That substitution still let real integration tests run against the live
-pgvector index — nearest-neighbor ordering, threshold filtering, top_k
-limiting, and empty-table behavior were all verified with real Postgres
-queries (deterministic random vectors standing in for real embeddings) —
-see `backend/tests/test_retrieval.py` and `09_testing_and_debugging.md`.
+Implement transcript retrieval using PostgreSQL and pgvector so that user
+questions can be matched against relevant transcript chunks.
+
+## Work Completed
+
+Implemented:
+
+- `rag/retriever.py`
+- `rag/embeddings.py`
+- `rag/citation.py`
+- `rag/prompts.py`
+
+The retriever:
+
+1. Generates an embedding for the user's query.
+2. Searches transcript embeddings using cosine similarity.
+3. Orders results by similarity in PostgreSQL.
+4. Limits the number of returned chunks.
+5. Applies a similarity threshold.
+6. Returns the transcript metadata needed for citations.
+
+The similarity search is performed in PostgreSQL rather than retrieving all
+vectors and sorting them in Python.
+
+## Grounding
+
+Added a grounding prompt that instructs the model to:
+
+- use the retrieved transcript context as its source of knowledge
+- avoid inventing unsupported information
+- acknowledge when the retrieved context is insufficient
+- identify relevant transcript sources
+- treat transcript content as data rather than instructions
+
+This also protects against transcript text attempting to override the
+assistant's instructions.
+
+## Embeddings
+
+The embedding layer uses `sentence-transformers` and is designed to load the
+model lazily so that it does not need to be initialized for every request.
+
+During development, the embedding model could not be downloaded in the
+build environment because the required packages/model weights were
+unavailable.
+
+Instead of skipping retrieval testing, a deterministic embedding function
+was used in the integration tests.
+
+## Verification
+
+The retrieval system was tested against a real PostgreSQL + pgvector
+database.
+
+The tests verified:
+
+- nearest-neighbor ordering
+- similarity threshold filtering
+- `top_k` limiting
+- empty retrieval behavior
+- PostgreSQL vector search
+
+The test embedding vectors were deterministic, so retrieval behavior could
+be tested independently from the external embedding model.
+
+## Result
+
+The RAG retrieval layer is implemented and tested independently from the
+embedding model.
+
+The next step is to verify the complete flow using the configured embedding
+model and connect retrieval to the LLM/agent layer.

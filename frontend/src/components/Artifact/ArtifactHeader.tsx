@@ -1,7 +1,8 @@
 "use client";
 
-import { X, FileText, Code2 } from "lucide-react";
+import { Code2, FileText, X } from "lucide-react";
 import type { ArtifactType } from "@/lib/types";
+
 import { Badge } from "../UI/Badge";
 
 interface ArtifactHeaderProps {
@@ -10,7 +11,11 @@ interface ArtifactHeaderProps {
   onClose: () => void;
 }
 
-export function ArtifactHeader({ title, artifactType, onClose }: ArtifactHeaderProps) {
+export function ArtifactHeader({
+  title,
+  artifactType,
+  onClose,
+}: ArtifactHeaderProps) {
   return (
     <div className="flex items-center justify-between border-b border-line bg-panel px-4 py-3">
       <div className="flex items-center gap-2 overflow-hidden">
@@ -19,9 +24,14 @@ export function ArtifactHeader({ title, artifactType, onClose }: ArtifactHeaderP
         ) : (
           <FileText size={16} className="flex-shrink-0 text-moss" />
         )}
-        <span className="truncate text-sm font-medium text-ink">{title}</span>
+
+        <span className="truncate text-sm font-medium text-ink">
+          {title}
+        </span>
+
         <Badge tone="neutral">{artifactType}</Badge>
       </div>
+
       <button
         onClick={onClose}
         aria-label="Close artifact"

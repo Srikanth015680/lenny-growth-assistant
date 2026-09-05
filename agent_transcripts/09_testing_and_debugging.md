@@ -1,3 +1,159 @@
+# 09 — Testing and Debugging
+
+## Goal
+
+Run the backend, frontend, database, retrieval, provider, and artifact
+flows together and fix issues discovered during integration testing.
+
+## Bugs Found and Fixed
+
+### 1. Session endpoint returned HTTP 500
+
+`GET /api/sessions/{id}` failed because a SQLAlchemy `selectinload`
+relationship was chained using a string instead of the mapped model
+attribute.
+
+The endpoint was tested against the running backend, and the structured
+error log made the problem easy to identify.
+
+Fixed the relationship loading to use the class-bound `Message.artifacts`
+attribute.
+
+### 2. Incorrect status code for unimplemented modes
+
+The `MODE_NOT_IMPLEMENTED` error was returning HTTP 500 instead of HTTP 501.
+
+The generic application error defaulted to 500 even though this particular
+error represented an unimplemented feature.
+
+Added a dedicated `ModeNotImplementedError` with HTTP status 501 and added a
+test for the expected status code.
+
+### 3. Structured logs contained unnecessary fields
+
+The JSON logging formatter was including many standard `LogRecord` fields
+that were not intended to appear in application logs.
+
+The filtering logic was corrected to use an explicit set of standard logging
+fields.
+
+This reduced the log output to the fields useful for debugging the
+application.
+
+### 4. Async pytest fixtures used different event loops
+
+The shared SQLAlchemy async engine was created under one event loop and later
+used by tests running under another loop.
+
+This caused async fixture failures.
+
+The pytest-asyncio configuration was updated so the application fixtures and
+tests use a consistent session-scoped event loop.
+
+The application engine is also properly disposed during fixture teardown.
+
+### 5. Development PostgreSQL process stopped between build sessions
+
+The development environment did not keep background PostgreSQL and Uvicorn
+processes running between separate build sessions.
+
+This was an environment limitation rather than an application bug.
+
+The services were restarted when necessary before running later integration
+tests.
+
+## Backend Verification
+
+The backend test suite was run together rather than only testing individual
+modules.
+
+The tests covered:
+
+- API behavior
+- session persistence
+- cascade deletion
+- retrieval
+- pgvector search
+- provider behavior
+- routing
+- Ship 30 generation
+- artifact generation
+- error handling
+
+The ingestion pipeline was also tested for idempotency.
+
+## Frontend Verification
+
+Verified:
+
+- production Next.js build
+- strict TypeScript checking
+- frontend/backend running together
+- browser-facing page
+- API communication
+- session creation
+- backend health information
+
+## Integration Verification
+
+The following were tested against live local infrastructure:
+
+- PostgreSQL
+- pgvector
+- vector search
+- backend API
+- frontend application
+- session creation
+- transcript ingestion
+- persistence
+
+External AI services were mocked where they were unavailable in the
+development environment.
+
+## Not Verified in the Development Environment
+
+### Ollama
+
+A live Ollama model was not available in the development environment.
+
+Provider behavior was tested using mocked HTTP responses.
+
+The final demo should run against a real Ollama installation.
+
+### Embedding Model
+
+The real `sentence-transformers` model could not be downloaded in the
+development environment.
+
+Retrieval was therefore tested using deterministic test embeddings against
+the real pgvector database.
+
+### Docker
+
+A Docker daemon was not available in the development environment.
+
+The services were tested using their equivalent local commands instead.
+
+The Docker Compose configuration should be verified on a machine with Docker
+before the final submission.
+
+### Artifact Isolation
+
+The artifact iframe configuration was reviewed against the intended security
+model, but browser-level isolation testing was not performed in the
+development environment.
+
+A real browser test should verify that generated HTML cannot access the
+parent application's DOM, cookies, or local storage.
+
+## Result
+
+The core application was tested across the API, database, retrieval,
+provider abstraction, frontend, and artifact flows.
+
+Remaining unverified areas are documented explicitly rather than being
+presented as tested functionalit
+
 # 09 — Testing and debugging
 
 ## Real bugs found and fixed during this build (not hypothetical)
@@ -35,8 +191,7 @@
    worth recording: the sandboxed container doesn't persist running
    background processes across tool-call boundaries the way a real
    machine would. Files and installed packages persisted; the `uvicorn`/
-   `postgresql` *processes* did not, and needed `service postgresql
-   start` re-run at the top of later sessions. If you're reading this
+   `postgresql` *processes* did not, and needed `service postgresql start` re-run at the top of later sessions. If you're reading this
    transcript wondering why there are multiple "start Postgres" steps
    across these logs, that's why — not repeated flailing, a real
    environment constraint.
@@ -54,6 +209,7 @@
 - `next build` with strict TypeScript checks
 
 ## What is code-complete but not verified against live infrastructure
+
   (and exactly why, so this isn't mistaken for a rushed skip)
 
 - A real Ollama model — no GPU/network access to install it in this

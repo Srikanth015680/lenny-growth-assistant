@@ -1,22 +1,49 @@
-# 02 — Database setup
 
-This build sandbox has no Docker daemon, so rather than leave the DB layer
-unverified, installed Postgres 16 + the `postgresql-16-pgvector` apt
-package directly (both available via the sandbox's `archive.ubuntu.com`
-mirror) and ran a real instance throughout the build.
+# 02 — Database Setup
 
-Verified for real, against that live instance:
-- `CREATE EXTENSION vector` succeeds, version 0.6.0, HNSW access method
-  present (`\dx` output confirmed).
-- `init_db()` (called from FastAPI's lifespan) creates all 4 tables and
-  the `ix_transcript_chunks_embedding_hnsw` index automatically on backend
-  startup — confirmed via `\dt` and `\di+` showing `access method: hnsw`
-  — no manual `psql` step involved, satisfying section 6's requirement.
-- A second `lenny_growth_assistant_test` database was created for the
-  pytest suite, schema created/dropped per test session
-  (`backend/tests/conftest.py`).
+## Goal
 
-Bug found and fixed here: `TranscriptRetriever`'s cosine search and the
-sessions API were both written against this real DB, which is what
-surfaced two real bugs during API testing (see `09_testing_and_debugging.md`)
-— the schema/index itself had no issues.
+Set up PostgreSQL with pgvector and verify that the backend can create and use the required database schema.
+
+## Work Completed
+
+The build environment did not have a Docker daemon available, so PostgreSQL 16 and pgvector were installed directly for development and testing.
+
+Verified:
+
+- PostgreSQL 16 is running.
+- The `vector` extension is available.
+- pgvector supports the HNSW index used for transcript embeddings.
+- The FastAPI startup process creates the required database tables automatically.
+- The transcript embedding index is created during database initialization.
+- A separate test database is used by pytest.
+
+The application does not require manually creating the database tables with `psql`.
+
+## Database Tables
+
+The initial schema contains:
+
+- `sessions`
+- `messages`
+- `artifacts`
+- `transcript_chunks`
+
+## Testing
+
+A separate test database was created so the test suite does not use the development database.
+
+The database layer was tested against a real PostgreSQL instance rather than only mocked objects.
+
+## Issues Found
+
+While testing the database-backed API, issues were found in:
+
+- transcript retrieval
+- session API behavior
+
+These were fixed during the later API testing/debugging stage and are documented in `09_testing_and_debugging.md`.
+
+## Result
+
+PostgreSQL, pgvector, the database schema, and the vector index were successfully verified.

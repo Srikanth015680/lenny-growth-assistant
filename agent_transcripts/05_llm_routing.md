@@ -1,23 +1,80 @@
-# 05 — LLM routing / provider abstraction
 
-Built `BaseLLMProvider` first (the interface), then `OllamaProvider`
-(httpx against Ollama's `/api/chat`, both streaming and non-streaming) and
-`AnthropicProvider` (the `anthropic` SDK's async client), then
-`ProviderFactory` last, so the factory could be written against an
-interface that already existed rather than growing organically around one
-provider.
+# 05 — LLM Routing and Provider Abstraction
 
-No live Ollama or Anthropic account was available in this sandbox, so
-provider tests use `respx` to intercept the Ollama HTTP calls and a fake
-provider class matching `BaseLLMProvider`'s interface for
-Anthropic-adjacent chat-flow tests — 11 provider tests, all passing,
-covering success, connection failure, timeout, streaming chunk assembly,
-and health-check model-missing detection.
+## Goal
 
-Also built the agent routing layer (`router.py`, `orchestrator.py`) here:
-`resolve_mode()` is driven by the request's explicit `mode` field rather
-than string-matching the message — the spec's own "don't make routing
-depend on fragile keyword matching" instruction, satisfied by making mode
-a structured enum on the request contract instead. Left a documented,
-inert seam (`infer_mode_from_text`) for later free-text intent inference
-rather than half-implementing it.
+Support both local and cloud LLMs without coupling the rest of the
+application to a specific provider.
+
+## Work Completed
+
+Implemented a common `BaseLLMProvider` interface and added:
+
+- `OllamaProvider`
+- `AnthropicProvider`
+- `ProviderFactory`
+
+The Ollama provider supports both normal and streaming responses.
+
+The Anthropic provider uses the Anthropic async SDK.
+
+The rest of the application interacts with the provider interface rather than
+calling Ollama or Anthropic directly.
+
+## Provider Selection
+
+The provider can be selected through application configuration.
+
+Ollama is the default provider for local development and the demo.
+
+Anthropic can be enabled when an API key is configured.
+
+The application handles provider connection failures and timeouts without
+exposing implementation details to the user.
+
+## Testing
+
+There was no live Ollama service or Anthropic API available during this part
+of development, so external calls were mocked.
+
+Tests covered:
+
+- successful provider responses
+- connection failures
+- timeouts
+- streaming responses
+- missing Ollama models
+- provider selection
+
+This allowed the provider layer to be tested without depending on an
+external service or API key.
+
+## Agent Routing
+
+Implemented the agent routing layer with:
+
+- `router.py`
+- `orchestrator.py`
+
+The request contract contains an explicit mode instead of trying to infer
+the mode from message keywords.
+
+Supported modes are:
+
+- `default`
+- `ship30`
+- `artifact`
+
+This keeps routing predictable and allows the frontend to explicitly request
+a particular capability.
+
+A separate extension point was left for future free-text intent detection,
+but it is not used by the current routing path.
+
+## Result
+
+The application can switch between local and cloud LLM providers without
+changing the rest of the chat implementation.
+
+The next step is to connect the routing/orchestration layer to the RAG
+pipeline and the individual skills.

@@ -1,29 +1,33 @@
-# --- Web framework ---------------------------------------------------
-fastapi==0.115.6
-uvicorn[standard]==0.34.0
-pydantic==2.10.4
-pydantic-settings==2.7.1
-python-multipart==0.0.20
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-multipart
 
-# --- Database ----------------------------------------------------------
-sqlalchemy[asyncio]==2.0.36
-asyncpg==0.30.0
-pgvector==0.3.6
+sqlalchemy[asyncio]
+asyncpg
+pgvector
+alembic
 
-# --- LLM providers -------------------------------------------------------
-httpx==0.28.1
-anthropic==0.42.0
+anthropic
+httpx
 
-# --- Embeddings ----------------------------------------------------------
-sentence-transformers==3.3.1
-numpy==2.2.1
+sentence-transformers
+numpy
 
-# --- Utilities -------------------------------------------------------
-python-dotenv==1.0.1
-tenacity==9.0.0
+python-dotenv
+tenacity
 
-# --- Testing (dev) -------------------------------------------------------
-pytest==8.3.4
-pytest-asyncio==0.25.0
-pytest-mock==3.14.0
-respx==0.22.0
+structlog
+opentelemetry-api
+opentelemetry-sdk
+
+pytest
+pytest-asyncio
+pytest-mock
+respx
+
+
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch

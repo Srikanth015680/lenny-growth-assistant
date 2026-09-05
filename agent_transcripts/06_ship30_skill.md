@@ -1,20 +1,80 @@
-# 06 — Ship30 skill
 
-First built as an honest `NotImplementedError` placeholder (with the API
-contract already wired to a 501 response) while the provider/RAG layers
-were still being built underneath it — deliberate, so the API surface was
-stable to build the frontend against without pretending the skill worked
-yet.
+# 06 — Ship 30 for 30 Skill
 
-Once retrieval + providers were verified, implemented it for real:
-`ship30_prompts.py` (structural rules — hook, headings, ~1,250 words,
-grounding) + `ship30_writer.py` (calls the resolved provider's
-`generate_response` with that prompt). Raises `InsufficientContextError`
-(422) when retrieval found nothing, rather than letting the model write an
-essay about nothing — same grounding discipline as plain chat.
+## Goal
 
-Wired into `orchestrator.run_ship30` (retrieve → emit sources → generate
-→ wrap as a Markdown artifact → persist) and `api/chat.py`'s mode
-dispatch. Verified via mocked-provider tests (`test_ship30.py`) and an
-end-to-end SSE test confirming the artifact event, persistence, and
-message linkage all happen correctly (`test_api.py`).
+Add a dedicated skill that turns grounded transcript-based answers into a
+Ship 30 for 30-style essay.
+
+## Initial Implementation
+
+The skill was initially added as a placeholder while the RAG and provider
+layers were still being developed.
+
+The API contract was wired first so the frontend could be developed against
+the expected interface without pretending that essay generation was already
+available.
+
+The placeholder returned a `501 Not Implemented` response.
+
+## Implementation
+
+Once the retrieval and LLM provider layers were working, the skill was
+implemented.
+
+Added:
+
+- `ship30_prompts.py`
+- `ship30_writer.py`
+
+The writing instructions cover:
+
+- strong hook
+- clear narrative progression
+- headings
+- skimmable formatting
+- approximately 1,250 words
+- actionable takeaway
+- grounding in transcript sources
+
+The writer receives the retrieved transcript context and uses the selected
+LLM provider to generate the essay.
+
+## Grounding
+
+The skill does not generate an essay when there is no supporting transcript
+context.
+
+When retrieval returns no usable context, an `InsufficientContextError` is
+returned instead.
+
+This keeps the Ship 30 skill consistent with the grounding behavior used by
+normal chat.
+
+## Integration
+
+Connected the skill to the agent orchestrator:
+
+1. Retrieve relevant transcript chunks.
+2. Emit the sources.
+3. Generate the essay.
+4. Wrap the result as a Markdown artifact.
+5. Persist the artifact.
+6. Link it to the assistant message.
+
+The chat API dispatches to this flow when the `ship30` mode is selected.
+
+## Testing
+
+Added tests for:
+
+- Ship 30 generation with a mocked provider
+- insufficient retrieval context
+- SSE artifact events
+- artifact persistence
+- message/artifact relationship
+
+## Result
+
+The Ship 30 skill is now implemented as a separate capability rather than
+being embedded directly in the chat endpoint.

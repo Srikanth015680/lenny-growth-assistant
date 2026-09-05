@@ -1,6 +1,12 @@
 "use client";
 
-import type { ArtifactType, ChatMode, LLMProvider, SessionDetail } from "@/lib/types";
+import type {
+  ArtifactType,
+  ChatMode,
+  LLMProvider,
+  SessionDetail,
+} from "@/lib/types";
+
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { ErrorState } from "../UI/ErrorState";
@@ -14,7 +20,11 @@ interface ChatPaneProps {
   streamingMessageId: string | null;
   error: string | null;
   onDismissError: () => void;
-  onSend: (message: string, mode: ChatMode, artifactType: ArtifactType) => void;
+  onSend: (
+    message: string,
+    mode: ChatMode,
+    artifactType: ArtifactType
+  ) => void;
   onOpenArtifact: (artifactId: string) => void;
 }
 
@@ -57,10 +67,17 @@ export function ChatPane({
         <div className="px-4 pb-2">
           {statusMessage && !error && (
             <p className="flex items-center gap-2 text-xs text-ink/50">
-              <Spinner className="text-moss" /> {statusMessage}
+              <Spinner className="text-moss" />
+              {statusMessage}
             </p>
           )}
-          {error && <ErrorState message={error} onRetry={onDismissError} />}
+
+          {error && (
+            <ErrorState
+              message={error}
+              onRetry={onDismissError}
+            />
+          )}
         </div>
       )}
 

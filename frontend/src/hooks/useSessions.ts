@@ -6,7 +6,9 @@ import type { Session, SessionDetail } from "@/lib/types";
 
 export function useSessions() {
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [activeSession, setActiveSession] = useState<SessionDetail | null>(null);
+  const [activeSession, setActiveSession] = useState<SessionDetail | null>(
+    null
+  );
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,10 +16,13 @@ export function useSessions() {
   const refreshSessions = useCallback(async () => {
     try {
       setLoadingSessions(true);
-      setSessions(await listSessions());
+      const data = await listSessions();
+      setSessions(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load sessions.");
+      setError(
+        err instanceof Error ? err.message : "Could not load sessions."
+      );
     } finally {
       setLoadingSessions(false);
     }
@@ -26,10 +31,15 @@ export function useSessions() {
   const selectSession = useCallback(async (sessionId: string) => {
     try {
       setLoadingDetail(true);
-      setActiveSession(await getSession(sessionId));
+      const data = await getSession(sessionId);
+      setActiveSession(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load conversation.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not load conversation."
+      );
     } finally {
       setLoadingDetail(false);
     }
@@ -37,8 +47,13 @@ export function useSessions() {
 
   const startNewChat = useCallback(async () => {
     const session = await createSession();
+
     setSessions((prev) => [session, ...prev]);
-    setActiveSession({ ...session, messages: [] });
+    setActiveSession({
+      ...session,
+      messages: [],
+    });
+
     return session;
   }, []);
 

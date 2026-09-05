@@ -14,18 +14,21 @@ function statusColor(status?: string): string {
   return "bg-danger";
 }
 
-/**
- * Shows the currently selected provider's health as a colored dot right on
- * the selector — "obvious model state" (section 22) without a separate
- * status panel to go check.
- */
-export function ProviderSelector({ provider, onChange, health }: ProviderSelectorProps) {
+export function ProviderSelector({
+  provider,
+  onChange,
+  health,
+}: ProviderSelectorProps) {
   const dot = statusColor(health?.[provider]?.status);
   const detail = health?.[provider]?.detail;
 
   return (
     <div className="flex items-center gap-2">
-      <span className={`h-2 w-2 rounded-full ${dot}`} title={detail ?? undefined} />
+      <span
+        className={`h-2 w-2 rounded-full ${dot}`}
+        title={detail ?? undefined}
+      />
+
       <select
         value={provider}
         onChange={(e) => onChange(e.target.value as LLMProvider)}

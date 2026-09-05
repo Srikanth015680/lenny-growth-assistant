@@ -1,15 +1,9 @@
-"""
-Pydantic v2 request/response schemas for the API layer.
-
-Kept separate from db_models.py deliberately: ORM models describe storage,
-these describe the wire contract. They're allowed to diverge (e.g. we never
-want to accidentally serialize an internal-only column to a client).
-"""
 import uuid
 from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
 
 ChatMode = Literal["default", "ship30", "artifact"]
 LLMProvider = Literal["ollama", "anthropic"]
@@ -26,7 +20,10 @@ class SourceCitation(BaseModel):
 
 
 class SessionCreate(BaseModel):
-    title: str | None = Field(default=None, max_length=255)
+    title: str | None = Field(
+        default=None,
+        max_length=255,
+    )
 
 
 class SessionOut(BaseModel):
@@ -70,9 +67,6 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1)
     provider: LLMProvider | None = None
     mode: ChatMode = "default"
-    # Only consulted when mode == "artifact"; defaults to markdown so the
-    # frontend can omit it for the common case and only send it when the
-    # user explicitly picks HTML.
     artifact_type: ArtifactType = "markdown"
 
 

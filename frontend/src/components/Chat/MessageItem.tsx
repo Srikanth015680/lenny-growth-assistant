@@ -1,8 +1,9 @@
 "use client";
 
+import { Code2, FileText } from "lucide-react";
+
 import type { Message } from "@/lib/types";
 import { SourceCitation } from "./SourceCitation";
-import { FileText, Code2 } from "lucide-react";
 
 interface MessageItemProps {
   message: Message;
@@ -10,7 +11,11 @@ interface MessageItemProps {
   onOpenArtifact?: (artifactId: string) => void;
 }
 
-export function MessageItem({ message, isStreaming, onOpenArtifact }: MessageItemProps) {
+export function MessageItem({
+  message,
+  isStreaming,
+  onOpenArtifact,
+}: MessageItemProps) {
   const isUser = message.role === "user";
 
   return (
@@ -25,14 +30,16 @@ export function MessageItem({ message, isStreaming, onOpenArtifact }: MessageIte
         >
           <p className="whitespace-pre-wrap text-sm leading-relaxed">
             {message.content}
-            {isStreaming && <span className="streaming-cursor">▍</span>}
+            {isStreaming && (
+              <span className="streaming-cursor">▍</span>
+            )}
           </p>
         </div>
 
         {!isUser && message.sources && message.sources.length > 0 && (
           <div className="mt-2 space-y-1.5">
-            {message.sources.map((source, i) => (
-              <SourceCitation key={i} source={source} />
+            {message.sources.map((source, index) => (
+              <SourceCitation key={index} source={source} />
             ))}
           </div>
         )}

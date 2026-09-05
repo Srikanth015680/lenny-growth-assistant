@@ -1,30 +1,27 @@
-"""
-Domain exceptions and their FastAPI error handlers.
-
-Section 23 requires structured API errors like:
-    {"error": {"code": "OLLAMA_UNAVAILABLE", "message": "..."}}
-and forbids leaking stack traces to the client. Every exception raised by
-application code (as opposed to framework validation errors, which FastAPI
-already handles) should be one of these, so the shape is always predictable.
-"""
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
 from app.logging_config import get_logger
 
+
 logger = get_logger(__name__)
 
 
 class AppError(Exception):
-    """Base class for all handled application errors."""
+    code = "INTERNAL_ERROR"
+    http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    code: str = "INTERNAL_ERROR"
-    http_status: int = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    def __init__(self, message: str, *, code: str | None = None):
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str | None = None,
+    ):
         self.message = message
+
         if code:
             self.code = code
+
         super().__init__(message)
 
 
@@ -34,8 +31,6 @@ class SessionNotFoundError(AppError):
 
 
 class InvalidMessageError(AppError):
-    """Empty message, oversized message, or other bad chat input."""
-
     code = "INVALID_MESSAGE"
     http_status = status.HTTP_400_BAD_REQUEST
 
@@ -86,10 +81,6 @@ class ModeNotImplementedError(AppError):
 
 
 class InsufficientContextError(AppError):
-    """Raised by a skill (Ship30, artifact generation) when retrieval found
-    nothing groundable — the honest refusal from section 9, applied to
-    skills as well as plain chat answers."""
-
     code = "INSUFFICIENT_CONTEXT"
     http_status = status.HTTP_422_UNPROCESSABLE_CONTENT
 
@@ -99,24 +90,42 @@ class DatabaseUnavailableError(AppError):
     http_status = status.HTTP_503_SERVICE_UNAVAILABLE
 
 
-async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
+async def app_error_handler(
+    request: Request,
+    exc: AppError,
+) -> JSONResponse:
     logger.warning(
         "handled_app_error",
-        extra={"error_code": exc.code, "path": str(request.url.path)},
+        extra={
+            "error_code": exc.code,
+            "path": str(request.url.path),
+        },
     )
+
     return JSONResponse(
         status_code=exc.http_status,
-        content={"error": {"code": exc.code, "message": exc.message}},
+        content={
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+            }
+        },
     )
 
 
-async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    # Never leak the raw exception / stack trace to the client (section 23).
+async def unhandled_exception_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
     logger.error(
         "unhandled_exception",
-        extra={"path": str(request.url.path), "exception_type": type(exc).__name__},
+        extra={
+            "path": str(request.url.path),
+            "exception_type": type(exc).__name__,
+        },
         exc_info=exc,
     )
+
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={

@@ -15,7 +15,8 @@ out/
 next-env.d.ts
 npm-debug.log*
 
-# Env / secrets
+
+# Environment
 .env
 .env.*
 !.env.example
@@ -34,4 +35,3 @@ data/processed/*
 
 # Docker
 *.pid
-.pytest_cache/

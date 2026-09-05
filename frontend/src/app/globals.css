@@ -1,10 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 html,
 body {
-  background-color: #f6f4ef;
+  background: #f6f4ef;
   color: #201f1c;
 }
 
@@ -12,8 +10,6 @@ body {
   scrollbar-width: thin;
 }
 
-/* Visible keyboard focus everywhere — this is a tool people navigate by
-   keyboard as often as by mouse. */
 :focus-visible {
   outline: 2px solid #2f6b4e;
   outline-offset: 2px;
@@ -28,11 +24,18 @@ body {
   }
 }
 
-/* Streaming-response cursor. */
 @keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
+
 .streaming-cursor {
   animation: blink 1s step-start infinite;
 }
